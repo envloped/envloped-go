@@ -18,8 +18,8 @@ func TestSendEmail_Success(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v1/emails" {
-			t.Errorf("expected path /api/v1/emails, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/emails" {
+			t.Errorf("expected path /v1/emails, got %s", r.URL.Path)
 		}
 		if ct := r.Header.Get("Content-Type"); ct != contentType {
 			t.Errorf("expected Content-Type %q, got %q", contentType, ct)

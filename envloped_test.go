@@ -76,8 +76,8 @@ func TestWithHTTPClient_Nil(t *testing.T) {
 func TestVersion(t *testing.T) {
 	t.Parallel()
 
-	if v := Version(); v != "1.0.0" {
-		t.Errorf("expected version %q, got %q", "1.0.0", v)
+	if v := Version(); v != "1.0.1" {
+		t.Errorf("expected version %q, got %q", "1.0.1", v)
 	}
 }
 
@@ -88,8 +88,8 @@ func TestPing_Success(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("expected GET, got %s", r.Method)
 		}
-		if r.URL.Path != "/api/v1/ping" {
-			t.Errorf("expected path /api/v1/ping, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/ping" {
+			t.Errorf("expected path /v1/ping, got %s", r.URL.Path)
 		}
 		if auth := r.Header.Get("Authorization"); auth != "Bearer test_api_key_123" {
 			t.Errorf("unexpected Authorization header: %s", auth)

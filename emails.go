@@ -63,7 +63,7 @@ func (s *emailsSvcImpl) SendWithContext(ctx context.Context, params *SendEmailRe
 		return nil, err
 	}
 
-	req, err := s.client.newRequest(ctx, http.MethodPost, "/api/v1/emails", params)
+	req, err := s.client.newRequest(ctx, http.MethodPost, "/v1/emails", params)
 	if err != nil {
 		return nil, fmt.Errorf("envloped: failed to create send email request: %w", err)
 	}

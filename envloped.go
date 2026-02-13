@@ -25,7 +25,7 @@ import (
 
 const (
 	// version is the current SDK version. Keep in sync with Git tags.
-	version = "1.0.0"
+	version = "1.0.1"
 
 	// userAgent is sent with every request for server-side tracking.
 	userAgent = "envloped-go/" + version
@@ -108,7 +108,7 @@ func (c *Client) Ping() (*PingResponse, error) {
 
 // PingWithContext checks connectivity and API key validity using the given context.
 func (c *Client) PingWithContext(ctx context.Context) (*PingResponse, error) {
-	req, err := c.newRequest(ctx, http.MethodGet, "/api/v1/ping", nil)
+	req, err := c.newRequest(ctx, http.MethodGet, "/v1/ping", nil)
 	if err != nil {
 		return nil, fmt.Errorf("envloped: failed to create ping request: %w", err)
 	}
