@@ -8,6 +8,7 @@
 //	    To:      []string{"user@example.com"},
 //	    Subject: "Hello from Envloped",
 //	    Html:    "<p>Welcome!</p>",
+//	    // Attachments: []envloped.Attachment{{Filename: "f.txt", Content: base64.StdEncoding.EncodeToString(data)}},
 //	})
 package envloped
 
@@ -25,7 +26,7 @@ import (
 
 const (
 	// version is the current SDK version. Keep in sync with Git tags.
-	version = "1.0.1"
+	version = "1.1.0"
 
 	// userAgent is sent with every request for server-side tracking.
 	userAgent = "envloped-go/" + version

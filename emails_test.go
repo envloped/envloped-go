@@ -321,6 +321,119 @@ func TestSendEmail_APIErrors(t *testing.T) {
 	}
 }
 
+func TestSendEmail_WithAttachments(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
+		defer r.Body.Close()
+
+		var req SendEmailRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			t.Fatalf("failed to unmarshal request body: %v", err)
+		}
+
+		if len(req.Attachments) != 2 {
+			t.Errorf("expected 2 attachments, got %d", len(req.Attachments))
+		}
+		if req.Attachments[0].Filename != "invoice.pdf" {
+			t.Errorf("expected filename %q, got %q", "invoice.pdf", req.Attachments[0].Filename)
+		}
+		if req.Attachments[0].Content != "SGVsbG8gV29ybGQ=" {
+			t.Errorf("expected content %q, got %q", "SGVsbG8gV29ybGQ=", req.Attachments[0].Content)
+		}
+		if req.Attachments[0].ContentType != "application/pdf" {
+			t.Errorf("expected contentType %q, got %q", "application/pdf", req.Attachments[0].ContentType)
+		}
+		if req.Attachments[1].Filename != "event.ics" {
+			t.Errorf("expected filename %q, got %q", "event.ics", req.Attachments[1].Filename)
+		}
+		if req.Attachments[1].ContentType != "" {
+			t.Errorf("expected empty contentType, got %q", req.Attachments[1].ContentType)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(SendEmailResponse{Success: true, MessageId: "msg_attach"})
+	}))
+	defer server.Close()
+
+	client := newTestClient(t, server)
+	resp, err := client.Emails.Send(&SendEmailRequest{
+		From:    "sender@example.com",
+		To:      []string{"recipient@example.com"},
+		Subject: "Email with attachments",
+		Html:    "<p>See attached</p>",
+		Attachments: []Attachment{
+			{Filename: "invoice.pdf", Content: "SGVsbG8gV29ybGQ=", ContentType: "application/pdf"},
+			{Filename: "event.ics", Content: "QkVHSU46VkNBTEVOREFS"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.MessageId != "msg_attach" {
+		t.Errorf("expected messageId %q, got %q", "msg_attach", resp.MessageId)
+	}
+}
+
+func TestSendEmail_AttachmentValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		attachments []Attachment
+		wantErr     string
+	}{
+		{
+			name: "too many attachments",
+			attachments: func() []Attachment {
+				out := make([]Attachment, 11)
+				for i := range out {
+					out[i] = Attachment{Filename: "f.txt", Content: "dGVzdA=="}
+				}
+				return out
+			}(),
+			wantErr: "maximum 10 attachments allowed",
+		},
+		{
+			name:        "missing filename",
+			attachments: []Attachment{{Content: "dGVzdA=="}},
+			wantErr:     "must have a filename",
+		},
+		{
+			name:        "missing content",
+			attachments: []Attachment{{Filename: "f.txt"}},
+			wantErr:     "must have base64-encoded content",
+		},
+	}
+
+	client := NewClient("key")
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := client.Emails.Send(&SendEmailRequest{
+				From:        "sender@example.com",
+				To:          []string{"recipient@example.com"},
+				Subject:     "Test",
+				Html:        "<p>Hi</p>",
+				Attachments: tt.attachments,
+			})
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if got := err.Error(); !contains(got, tt.wantErr) {
+				t.Errorf("expected error to contain %q, got %q", tt.wantErr, got)
+			}
+		})
+	}
+}
+
 func TestSendEmailWithContext_Cancellation(t *testing.T) {
 	t.Parallel()
 

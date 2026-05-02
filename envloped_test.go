@@ -76,8 +76,8 @@ func TestWithHTTPClient_Nil(t *testing.T) {
 func TestVersion(t *testing.T) {
 	t.Parallel()
 
-	if v := Version(); v != "1.0.1" {
-		t.Errorf("expected version %q, got %q", "1.0.1", v)
+	if v := Version(); v != "1.1.0" {
+		t.Errorf("expected version %q, got %q", "1.1.0", v)
 	}
 }
 

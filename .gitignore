@@ -23,3 +23,5 @@ vendor/
 
 CONTRIBUTING.md
 
+# Live integration tests
+live_test/

@@ -70,13 +70,46 @@ resp, err := client.Emails.Send(&envloped.SendEmailRequest{
 
 **Fields:**
 
-| Field     | Type       | Required | Description                                |
-| --------- | ---------- | -------- | ------------------------------------------ |
-| `From`    | `string`   | Yes      | Sender address. Domain must be verified.   |
-| `To`      | `[]string` | Yes      | Recipient addresses.                       |
-| `Subject` | `string`   | Yes      | Email subject line.                        |
-| `Html`    | `string`   | *        | HTML body. At least one of Html/Text required. |
-| `Text`    | `string`   | *        | Plain text body. At least one of Html/Text required. |
+| Field         | Type                  | Required | Description                                          |
+| ------------- | --------------------- | -------- | ---------------------------------------------------- |
+| `From`        | `string`              | Yes      | Sender address. Domain must be verified.             |
+| `To`          | `[]string`            | Yes      | Recipient addresses.                                 |
+| `Subject`     | `string`              | Yes      | Email subject line.                                  |
+| `Html`        | `string`              | *        | HTML body. At least one of Html/Text required.       |
+| `Text`        | `string`              | *        | Plain text body. At least one of Html/Text required. |
+| `Attachments` | `[]envloped.Attachment` | No     | File attachments. Max 10, combined ≤ 40 MB decoded (validated before send; API also enforces). |
+
+### Sending Emails with Attachments
+
+Attach files by providing a slice of `Attachment` values. Each attachment requires a `Filename` and base64-encoded `Content`. `ContentType` is optional but recommended.
+
+```go
+import "encoding/base64"
+
+pdfBytes, _ := os.ReadFile("invoice.pdf")
+
+resp, err := client.Emails.Send(&envloped.SendEmailRequest{
+    From:    "billing@yourdomain.com",
+    To:      []string{"customer@example.com"},
+    Subject: "Your invoice",
+    Html:    "<p>Please find your invoice attached.</p>",
+    Attachments: []envloped.Attachment{
+        {
+            Filename:    "invoice.pdf",
+            Content:     base64.StdEncoding.EncodeToString(pdfBytes),
+            ContentType: "application/pdf",
+        },
+    },
+})
+```
+
+**`Attachment` fields:**
+
+| Field         | Type     | Required | Description                                              |
+| ------------- | -------- | -------- | -------------------------------------------------------- |
+| `Filename`    | `string` | Yes      | File name shown to the recipient (e.g., `invoice.pdf`). |
+| `Content`     | `string` | Yes      | Base64-encoded file content.                             |
+| `ContentType` | `string` | No       | MIME type (e.g., `application/pdf`, `text/calendar`).    |
 
 **Response:**
 
@@ -176,7 +209,7 @@ func (m *mockEmailsSvc) SendWithContext(ctx context.Context, params *envloped.Se
 ## Version
 
 ```go
-fmt.Println(envloped.Version()) // "1.0.0"
+fmt.Println(envloped.Version()) // "1.1.0"
 ```
 
 ## License
